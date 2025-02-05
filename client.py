@@ -1,30 +1,16 @@
-import requests
-import time
+import asyncio
+import websockets
 
-url = 'http://129.97.168.82:5000/post-endpoint'
-data = {'data': 'Hello, server!'}
+async def receive_stream():
+    try:
+        async with websockets.connect("ws://129.97.168.82:8765") as websocket:
+            while True:
+                packet_data_hex = await websocket.recv()
+                packet_data = bytes.fromhex(packet_data_hex)
+                print(f"Received packet: {packet_data}")
+    except websockets.ConnectionClosed:
+        print("Connection closed by server.")
+    except Exception as e:
+        print(f"Client error: {e}")
 
-# def attach():
-#     response = requests.post(f'{SERVER_URL}/attach', json={'client_id': CLIENT_ID})
-#     print(response.json())
-
-# def send_traffic():
-#     response = requests.post(f'{SERVER_URL}/send_traffic', json={'client_id': CLIENT_ID})
-#     print(response.json())
-
-# def detach():
-#     response = requests.post(f'{SERVER_URL}/detach', json={'client_id': CLIENT_ID})
-#     print(response.json())
-
-# if __name__ == '__main__':
-#     attach()
-#     time.sleep(2)  # Wait for 2 seconds before sending traffic
-#     send_traffic()
-#     time.sleep(4)  # Simulate traffic for 10 seconds
-#     detach()
-
-response = requests.post(url, data=data)
-
-for chunk in response.iter_lines():
-    if chunk:
-        print(chunk.decode())
+asyncio.run(receive_stream())

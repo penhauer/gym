@@ -1,18 +1,25 @@
-from flask import Flask, request, Response
-import time
+import asyncio
+import websockets
+import os
 
-app = Flask(__name__)
+def get_next_packet():
+    return os.urandom(32)
 
-def generate_packets(data):
-    """Simulate generating packets."""
-    for i in range(5):
-        yield f"Packet {i+1}: {data}\n"
-        time.sleep(1)  # Simulate a delay between packets
+async def stream_packets(websocket):
+    try:
+        while True:
+            packet_data = get_next_packet()
+            await websocket.send(packet_data.hex())
+            await asyncio.sleep(1)
+    except websockets.ConnectionClosed:
+        print("Client disconnected.")
+    except Exception as e:
+        print(f"Server error: {e}")
+        await websocket.close()
 
-@app.route('/post-endpoint', methods=['POST'])
-def post_endpoint():
-    data = request.form['data']  # Get data from POST request
-    return Response(generate_packets(data), content_type='text/plain')
+async def main():
+    server = await websockets.serve(stream_packets, "0.0.0.0", 8765)
+    print("WebSocket server started on ws://0.0.0.0:8765")
+    await server.wait_closed()
 
-if __name__ == '__main__':
-    app.run(debug=True)
+asyncio.run(main())
