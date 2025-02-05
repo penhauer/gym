@@ -1,7 +1,7 @@
 import requests
 import time
 
-SERVER_URL = 'http://localhost:5000'
+SERVER_URL = 'http://129.97.168.82:5000'
 CLIENT_ID = 'client1'
 
 def attach():
